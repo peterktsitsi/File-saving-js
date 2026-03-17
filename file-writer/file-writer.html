@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File Writer</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f0f0f;
+      --surface: #1a1a1a;
+      --border: #2a2a2a;
+      --text: #e8e8e8;
+      --muted: #666;
+      --green: #4ade80;
+      --blue: #60a5fa;
+      --yellow: #fbbf24;
+      --red: #f87171;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'IBM Plex Sans', sans-serif;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 2rem 1rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 520px;
+      animation: up 0.5s cubic-bezier(0.16,1,0.3,1) both;
+    }
+
+    @keyframes up {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 500;
+      margin-bottom: 0.3rem;
+    }
+
+    .subtitle {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 1.75rem;
+    }
+
+    label {
+      display: block;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.4rem;
+    }
+
+    input, textarea {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.85rem;
+      padding: 0.65rem 0.85rem;
+      outline: none;
+      transition: border-color 0.2s;
+      margin-bottom: 1.2rem;
+    }
+
+    input:focus, textarea:focus {
+      border-color: var(--blue);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 120px;
+      line-height: 1.6;
+    }
+
+    .filename-row {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-bottom: 1.2rem;
+    }
+
+    .filename-row input {
+      border-radius: 8px 0 0 8px;
+      margin-bottom: 0;
+      flex: 1;
+    }
+
+    .ext {
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-left: none;
+      border-radius: 0 8px 8px 0;
+      padding: 0.65rem 0.85rem;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.85rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 0.7rem 1rem;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.78rem;
+      font-weight: 600;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .btn-download {
+      background: var(--blue);
+      color: #000;
+    }
+
+    .btn-save {
+      background: var(--green);
+      color: #000;
+    }
+
+    .btn-save.hidden { display: none; }
+
+    .notice {
+      margin-top: 1.5rem;
+      padding: 0.85rem 1rem;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      line-height: 1.6;
+      display: none;
+    }
+
+    .notice.show { display: block; }
+    .notice.success { background: #052e16; border: 1px solid #166534; color: var(--green); }
+    .notice.error   { background: #1c0a09; border: 1px solid #7f1d1d; color: var(--red); }
+    .notice.info    { background: #0c1a2e; border: 1px solid #1e3a5f; color: var(--blue); }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 1.5rem 0;
+    }
+
+    .explainer {
+      font-size: 0.75rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .explainer strong { color: var(--text); }
+    .explainer code {
+      font-family: 'IBM Plex Mono', monospace;
+      background: var(--bg);
+      padding: 0.1rem 0.35rem;
+      border-radius: 4px;
+      font-size: 0.72rem;
+    }
+
+    .tag {
+      display: inline-block;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.62rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 100px;
+      margin-left: 0.4rem;
+      vertical-align: middle;
+    }
+
+    .tag-download { background: #1e3a5f; color: var(--blue); }
+    .tag-api      { background: #052e16; color: var(--green); }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h1>📄 File Writer</h1>
+  <p class="subtitle">Create a file and save it to your computer.</p>
+
+  <label>File Name</label>
+  <div class="filename-row">
+    <input type="text" id="filename" placeholder="my-file" spellcheck="false">
+    <div class="ext">.txt</div>
+  </div>
+
+  <label>File Content</label>
+  <textarea id="content" placeholder="Type the content of your file here..."></textarea>
+
+  <div class="buttons">
+    <button class="btn btn-download" onclick="downloadFile()">⬇ Download File</button>
+    <button class="btn btn-save hidden" id="saveBtn" onclick="saveWithPicker()">💾 Choose Save Location</button>
+  </div>
+
+  <div class="notice" id="notice"></div>
+
+  <hr class="divider">
+
+  <div class="explainer">
+    <strong>Why two buttons?</strong><br>
+    Browsers block direct filesystem access for security.
+    <br><br>
+    <strong>⬇ Download File</strong> <span class="tag tag-download">all browsers</span><br>
+    Uses <code>&lt;a download&gt;</code> — creates a Blob URL and triggers a download to your <em>Downloads</em> folder. No permission needed.
+    <br><br>
+    <strong>💾 Choose Save Location</strong> <span class="tag tag-api">Chrome / Edge only</span><br>
+    Uses the <code>File System Access API</code> — opens a native Save dialog so you can pick exactly where the file goes. Only available in Chromium browsers.
+  </div>
+</div>
+
+<script>
+  // Show "Choose Save Location" only if browser supports the API
+  if ('showSaveFilePicker' in window) {
+    document.getElementById('saveBtn').classList.remove('hidden');
+  }
+
+  function getInputs() {
+    const name    = document.getElementById('filename').value.trim() || 'my-file';
+    const content = document.getElementById('content').value;
+    return { name, content };
+  }
+
+  function showNotice(msg, type) {
+    const el = document.getElementById('notice');
+    el.textContent = msg;
+    el.className = 'notice show ' + type;
+  }
+
+  // ── Method 1: <a download> trick ──────────────────────────────────────────
+  function downloadFile() {
+    const { name, content } = getInputs();
+
+    // Create an in-memory Blob containing the file content
+    const blob = new Blob([content], { type: 'text/plain' });
+
+    // Create a temporary object URL pointing to the blob
+    const url = URL.createObjectURL(blob);
+
+    // Create an invisible <a> tag, set the download attribute, click it
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name + '.txt';   // this is what sets the filename
+    a.click();
+
+    // Release the object URL from memory
+    URL.revokeObjectURL(url);
+
+    showNotice(`✓ "${name}.txt" sent to your Downloads folder.`, 'success');
+  }
+
+  // ── Method 2: File System Access API ─────────────────────────────────────
+  async function saveWithPicker() {
+    const { name, content } = getInputs();
+
+    try {
+      // Open the native OS Save dialog
+      const fileHandle = await window.showSaveFilePicker({
+        suggestedName: name + '.txt',
+        types: [{
+          description: 'Text file',
+          accept: { 'text/plain': ['.txt'] }
+        }]
+      });
+
+      // Get a writable stream to the chosen file
+      const writable = await fileHandle.createWritable();
+
+      // Write the content
+      await writable.write(content);
+
+      // Close the stream (flushes to disk)
+      await writable.close();
+
+      showNotice(`✓ "${fileHandle.name}" saved successfully.`, 'success');
+
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        showNotice('Save cancelled.', 'info');
+      } else {
+        showNotice('Error: ' + err.message, 'error');
+      }
+    }
+  }
+</script>
+
+</body>
+</html>
