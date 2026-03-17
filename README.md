@@ -1,4 +1,4 @@
-# File-saving-js
+# File saving with js
 a simple single page html file with style and js, for saving a file on your local drive
 
 # 📄 Js File Writer Demo
